@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (CDN is required for single-file setup) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Icons -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <!-- Tailwind Config for Custom Colors/Fonts -->
@@ -24,7 +24,7 @@
                     fontFamily: {
                         sans: ['Manrope', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
-                        malayalam: ['Manrope', 'sans-serif'], // Assuming Manrope handles Malayalam well or using system fallback
+                        malayalam: ['Manrope', 'sans-serif'],
                     },
                     colors: {
                         coffee: {
@@ -38,6 +38,7 @@
                             700: '#6b4f43',
                             800: '#4a362e',
                             900: '#2b1f1a',
+                            950: '#1a120f',
                         },
                         accent: '#d4af37', // Gold
                     }
@@ -52,10 +53,11 @@
         }
 
         body {
-            background-color: #2b1f1a;
+            background-color: #1a120f;
             color: #fdf8f6;
             overflow-x: hidden;
-            cursor: none; /* Hide default cursor */
+            cursor: none; /* Hide default cursor for custom cursor */
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Custom Cursor */
@@ -66,11 +68,11 @@
             width: var(--cursor-size);
             height: var(--cursor-size);
             border-radius: 50%;
-            background-color: rgba(212, 175, 55, 0.5); /* Gold with opacity */
+            background-color: rgba(212, 175, 55, 0.5);
             pointer-events: none;
             z-index: 9999;
             transform: translate(-50%, -50%);
-            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, mix-blend-mode 0.3s ease;
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
             mix-blend-mode: difference;
         }
 
@@ -85,42 +87,43 @@
             pointer-events: none;
             z-index: 9998;
             transform: translate(-50%, -50%);
-            transition: transform 0.1s ease-out;
+            transition: transform 0.15s ease-out;
         }
 
         .cursor-hover .custom-cursor {
             width: 60px;
             height: 60px;
             background-color: #fdf8f6;
-            mix-blend-mode: difference;
+        }
+        
+        .cursor-hover .custom-cursor-follower {
+            transform: translate(-50%, -50%) scale(1.5);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         /* Loading Screen */
         #loader {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            inset: 0;
             background-color: #1a120f;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 1s ease-out, visibility 1s ease-out;
+            transition: opacity 1s cubic-bezier(0.77, 0, 0.175, 1), visibility 1s;
         }
 
         #loader.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .loader-text {
-            font-family: 'Playfair Display', serif;
             font-size: 4rem;
             color: #d4af37;
             clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
-            animation: revealText 2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+            animation: revealText 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards;
         }
 
         @keyframes revealText {
@@ -136,231 +139,237 @@
             width: 100vw;
             height: 100vh;
             z-index: -1;
-            opacity: 0.6;
+            opacity: 0.5;
+            pointer-events: none;
         }
 
         /* Hover Animations */
         .hover-underline-animation {
-            display: inline-block;
             position: relative;
         }
-
         .hover-underline-animation::after {
             content: '';
             position: absolute;
             width: 100%;
             transform: scaleX(0);
             height: 1px;
-            bottom: 0;
+            bottom: -4px;
             left: 0;
             background-color: #d4af37;
             transform-origin: bottom right;
             transition: transform 0.4s cubic-bezier(0.86, 0, 0.07, 1);
         }
-
         .hover-underline-animation:hover::after {
             transform: scaleX(1);
             transform-origin: bottom left;
         }
 
-        .image-reveal {
-            overflow: hidden;
-            border-radius: 1rem;
-        }
-
-        .image-reveal img {
-            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
-            transform: scale(1.1);
-        }
-
-        .image-reveal:hover img {
-            transform: scale(1);
-        }
-
-        /* Scroll Animations */
-        .fade-up {
+        /* Scroll Reveal Animations (Native JS) */
+        .reveal-up {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-
-        .fade-up.visible {
+        .reveal-up.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* Smooth scrolling for anchor links */
-        html {
-            scroll-behavior: smooth;
+        
+        /* Image Reveal */
+        .img-reveal-container {
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        .img-reveal-container img {
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: scale(1.1);
+        }
+        .img-reveal-container:hover img {
+            transform: scale(1);
         }
     </style>
 </head>
-<body class="antialiased font-sans selection:bg-accent selection:text-coffee-900">
+<body>
 
     <!-- Loading Screen -->
     <div id="loader">
         <div class="text-center">
-            <h1 class="loader-text tracking-widest font-malayalam">സമയം</h1>
-            <p class="text-coffee-300 mt-4 font-sans tracking-[0.2em] text-sm uppercase opacity-0 transition-opacity duration-1000 delay-1000" id="loader-sub">Brewing Moments</p>
+            <h1 class="loader-text font-serif tracking-widest font-malayalam">സമയം</h1>
+            <p class="text-coffee-300 mt-4 font-sans tracking-[0.2em] text-sm uppercase opacity-0 transition-opacity duration-1000 delay-700" id="loader-sub">Brewing Moments</p>
         </div>
     </div>
 
-    <!-- Custom Cursor -->
-    <div class="custom-cursor"></div>
-    <div class="custom-cursor-follower"></div>
+    <!-- Custom Cursor Elements -->
+    <div class="custom-cursor hidden md:block"></div>
+    <div class="custom-cursor-follower hidden md:block"></div>
 
     <!-- WebGL Background Container -->
     <canvas id="fluid-bg"></canvas>
 
     <!-- Navigation -->
-    <nav class="fixed w-full z-50 top-0 px-6 py-8 mix-blend-difference">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="#" class="text-2xl font-serif font-bold text-white tracking-widest hover-trigger font-malayalam">സമയം.</a>
+    <nav class="fixed w-full z-50 top-0 px-6 py-6 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto flex justify-between items-center bg-black/20 backdrop-blur-md border border-white/10 rounded-full px-6 py-3">
+            <a href="#" class="text-xl font-serif font-bold text-white tracking-widest hover-trigger font-malayalam">സമയം.</a>
             
-            <div class="hidden md:flex space-x-12 text-sm font-medium tracking-widest uppercase text-white">
+            <div class="hidden md:flex space-x-10 text-xs font-semibold tracking-widest uppercase text-white/90">
                 <a href="#about" class="hover-underline-animation hover-trigger">Story</a>
                 <a href="#menu" class="hover-underline-animation hover-trigger">Menu</a>
                 <a href="#spaces" class="hover-underline-animation hover-trigger">Spaces</a>
             </div>
 
             <button class="md:hidden text-white hover-trigger">
-                <i class="ph ph-list text-3xl"></i>
+                <i class="ph ph-list text-2xl"></i>
             </button>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="relative h-screen flex items-center justify-center px-6">
-        <div class="text-center z-10 max-w-4xl mx-auto mt-20">
-            <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl mb-6 text-white font-malayalam leading-tight">
+        <div class="text-center z-10 max-w-4xl mx-auto">
+            <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl mb-6 text-white font-malayalam leading-tight reveal-up" style="transition-delay: 2.5s;">
                 സമയം
             </h1>
-            <p class="text-xl md:text-2xl font-light text-coffee-100 mb-12 font-serif italic">
+            <p class="text-xl md:text-2xl font-light text-coffee-200 mb-12 font-serif italic reveal-up" style="transition-delay: 2.7s;">
                 "Where time stands still, and coffee speaks."
             </p>
-            <a href="#menu" class="group relative inline-flex items-center justify-center px-8 py-4 font-medium tracking-widest text-white uppercase border border-white/30 rounded-full overflow-hidden transition-all duration-500 hover:border-accent hover-trigger">
-                <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-accent rounded-full group-hover:w-56 group-hover:h-56 -z-10"></span>
-                <span class="relative z-10 group-hover:text-coffee-900 transition-colors duration-300">Explore Menu</span>
-            </a>
+            <div class="reveal-up" style="transition-delay: 2.9s;">
+                <a href="#menu" class="group relative inline-flex items-center justify-center px-8 py-4 font-medium tracking-widest text-white uppercase border border-white/30 rounded-full overflow-hidden transition-all duration-500 hover:border-accent hover-trigger">
+                    <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-accent rounded-full group-hover:w-56 group-hover:h-56 -z-10"></span>
+                    <span class="relative z-10 group-hover:text-black transition-colors duration-300">Explore Menu</span>
+                </a>
+            </div>
         </div>
         
         <!-- Scroll indicator -->
-        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce">
-            <span class="text-xs uppercase tracking-widest text-coffee-300 mb-2">Scroll</span>
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce reveal-up" style="transition-delay: 3s;">
+            <span class="text-[10px] uppercase tracking-[0.3em] text-coffee-300 mb-2">Scroll</span>
             <div class="w-[1px] h-12 bg-gradient-to-b from-coffee-300 to-transparent"></div>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-32 px-6 bg-coffee-900/80 backdrop-blur-sm relative z-10">
+    <section id="about" class="py-32 px-6 bg-gradient-to-b from-transparent to-coffee-950 relative z-10">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div class="fade-up order-2 md:order-1 image-reveal">
-                <img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=2671&auto=format&fit=crop" alt="Pouring Coffee" class="w-full h-[600px] object-cover rounded-2xl shadow-2xl">
+            <div class="reveal-up order-2 md:order-1 img-reveal-container shadow-2xl shadow-black/50">
+                <img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=2671&auto=format&fit=crop" alt="Pouring Coffee" class="w-full h-[600px] object-cover">
             </div>
-            <div class="fade-up order-1 md:order-2">
-                <span class="text-accent tracking-widest uppercase text-sm font-semibold mb-4 block">Our Story</span>
-                <h2 class="text-4xl md:text-5xl font-serif mb-8 leading-snug">Curating moments,<br>one cup at a time.</h2>
-                <p class="text-coffee-200 text-lg leading-relaxed mb-8 font-light">
-                    At <span class="font-malayalam">സമയം</span> (Samayam), we believe that coffee is more than just a beverage; it's a ritual, a pause in the relentless march of time. Sourced from the highest altitudes and roasted with precision, every bean tells a story of heritage and passion.
+            <div class="order-1 md:order-2">
+                <span class="text-accent tracking-widest uppercase text-xs font-bold mb-4 block reveal-up">Our Story</span>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-serif mb-8 leading-snug text-white reveal-up delay-100">Curating moments,<br>one cup at a time.</h2>
+                <p class="text-coffee-200 text-lg leading-relaxed mb-8 font-light reveal-up delay-200">
+                    At <span class="font-malayalam font-semibold text-white">സമയം</span> (Samayam), we believe that coffee is more than just a beverage; it's a ritual, a pause in the relentless march of time. Sourced from the highest altitudes of the Western Ghats and roasted with precision, every bean tells a story of heritage and passion.
                 </p>
-                <button class="text-white border-b border-accent pb-1 hover:text-accent transition-colors hover-trigger flex items-center gap-2 group">
-                    Read our manifesto <i class="ph ph-arrow-right group-hover:translate-x-2 transition-transform"></i>
-                </button>
+                <div class="reveal-up delay-300">
+                    <button class="text-white border-b border-accent pb-1 hover:text-accent transition-colors hover-trigger flex items-center gap-2 group uppercase text-xs tracking-widest font-semibold">
+                        Read our manifesto <i class="ph ph-arrow-right group-hover:translate-x-2 transition-transform"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Menu Section -->
-    <section id="menu" class="py-32 px-6 relative z-10">
+    <section id="menu" class="py-32 px-6 bg-coffee-950 relative z-10">
         <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-20 fade-up">
-                <span class="text-accent tracking-widest uppercase text-sm font-semibold mb-4 block">Offerings</span>
-                <h2 class="text-4xl md:text-5xl font-serif">Signature Brews</h2>
+            <div class="text-center mb-20">
+                <span class="text-accent tracking-widest uppercase text-xs font-bold mb-4 block reveal-up">Offerings</span>
+                <h2 class="text-4xl md:text-5xl font-serif text-white reveal-up delay-100">Signature Brews</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
                 <!-- Menu Item 1 -->
-                <div class="group fade-up hover-trigger cursor-none">
-                    <div class="overflow-hidden rounded-xl mb-6 relative aspect-[3/4]">
-                        <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2575&auto=format&fit=crop" alt="Espresso" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                <div class="group hover-trigger cursor-none reveal-up">
+                    <div class="img-reveal-container mb-6 relative aspect-[3/4]">
+                        <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2575&auto=format&fit=crop" alt="Espresso" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-500"></div>
                     </div>
                     <div class="flex justify-between items-end border-b border-coffee-800 pb-4">
                         <div>
-                            <h3 class="text-2xl font-serif mb-2">Midnight Espresso</h3>
+                            <h3 class="text-2xl font-serif mb-2 text-white group-hover:text-accent transition-colors">Midnight Espresso</h3>
                             <p class="text-coffee-300 text-sm font-light">Dark roast, hints of dark chocolate & plum.</p>
                         </div>
-                        <span class="text-accent font-serif text-xl">₹250</span>
+                        <span class="text-white font-serif text-xl">₹250</span>
                     </div>
                 </div>
 
                 <!-- Menu Item 2 -->
-                <div class="group fade-up hover-trigger cursor-none" style="transition-delay: 100ms;">
-                    <div class="overflow-hidden rounded-xl mb-6 relative aspect-[3/4]">
-                        <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=2674&auto=format&fit=crop" alt="Latte" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                <div class="group hover-trigger cursor-none reveal-up delay-100">
+                    <div class="img-reveal-container mb-6 relative aspect-[3/4]">
+                        <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=2674&auto=format&fit=crop" alt="Latte" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-500"></div>
                     </div>
                     <div class="flex justify-between items-end border-b border-coffee-800 pb-4">
                         <div>
-                            <h3 class="text-2xl font-serif mb-2">Monsoon Latte</h3>
+                            <h3 class="text-2xl font-serif mb-2 text-white group-hover:text-accent transition-colors">Monsoon Latte</h3>
                             <p class="text-coffee-300 text-sm font-light">Spiced infused milk, light roast espresso.</p>
                         </div>
-                        <span class="text-accent font-serif text-xl">₹320</span>
+                        <span class="text-white font-serif text-xl">₹320</span>
                     </div>
                 </div>
 
                 <!-- Menu Item 3 -->
-                <div class="group fade-up hover-trigger cursor-none" style="transition-delay: 200ms;">
-                    <div class="overflow-hidden rounded-xl mb-6 relative aspect-[3/4]">
-                        <img src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=2574&auto=format&fit=crop" alt="Pour Over" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                <div class="group hover-trigger cursor-none reveal-up delay-200">
+                    <div class="img-reveal-container mb-6 relative aspect-[3/4]">
+                        <img src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=2574&auto=format&fit=crop" alt="Pour Over" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-500"></div>
                     </div>
                     <div class="flex justify-between items-end border-b border-coffee-800 pb-4">
                         <div>
-                            <h3 class="text-2xl font-serif mb-2">Wayanad Pour Over</h3>
+                            <h3 class="text-2xl font-serif mb-2 text-white group-hover:text-accent transition-colors">Wayanad Pour Over</h3>
                             <p class="text-coffee-300 text-sm font-light">Single origin, bright acidity, floral notes.</p>
                         </div>
-                        <span class="text-accent font-serif text-xl">₹280</span>
+                        <span class="text-white font-serif text-xl">₹280</span>
                     </div>
                 </div>
             </div>
             
-            <div class="text-center mt-16 fade-up">
-                <a href="#" class="inline-block border border-coffee-500 text-coffee-200 px-8 py-3 rounded-full hover:bg-coffee-500 hover:text-white transition-colors duration-300 hover-trigger uppercase tracking-widest text-sm">View Full Menu</a>
+            <div class="text-center mt-20 reveal-up delay-300">
+                <a href="#" class="inline-block border border-white/20 text-white px-10 py-4 rounded-full hover:bg-white hover:text-black transition-all duration-300 hover-trigger uppercase tracking-[0.2em] text-xs font-semibold">View Full Menu</a>
             </div>
         </div>
     </section>
 
     <!-- Atmosphere Section -->
-    <section id="spaces" class="py-32 px-6 bg-coffee-950 relative z-10">
+    <section id="spaces" class="py-32 px-6 bg-[#140d0b] relative z-10">
         <div class="max-w-7xl mx-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <div class="lg:col-span-5 fade-up">
-                    <span class="text-accent tracking-widest uppercase text-sm font-semibold mb-4 block">The Space</span>
-                    <h2 class="text-4xl md:text-5xl font-serif mb-6 leading-tight">Designed for pause.</h2>
-                    <p class="text-coffee-300 text-lg mb-8 font-light">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-5">
+                    <span class="text-accent tracking-widest uppercase text-xs font-bold mb-4 block reveal-up">The Space</span>
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-serif mb-6 leading-tight text-white reveal-up delay-100">Designed for pause.</h2>
+                    <p class="text-coffee-300 text-lg mb-10 font-light reveal-up delay-200">
                         Our interiors blend brutalist concrete with warm Kerala wood tones, creating an acoustic sanctuary where ideas flow as freely as our coffee.
                     </p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <h4 class="font-serif text-xl mb-2">Location</h4>
-                            <p class="text-sm text-coffee-400">12th Main Indiranagar,<br>Bengaluru, KA 560038</p>
+                    <div class="grid grid-cols-2 gap-6 reveal-up delay-300">
+                        <div class="p-6 border border-white/5 rounded-xl bg-white/[0.02]">
+                            <i class="ph ph-map-pin text-accent text-2xl mb-3"></i>
+                            <h4 class="font-sans font-semibold text-white tracking-wide text-sm uppercase mb-2">Location</h4>
+                            <p class="text-sm text-coffee-400 font-light leading-relaxed">12th Main Indiranagar,<br>Bengaluru, KA 560038</p>
                         </div>
-                        <div>
-                            <h4 class="font-serif text-xl mb-2">Hours</h4>
-                            <p class="text-sm text-coffee-400">Mon-Sun<br>07:00 AM - 11:00 PM</p>
+                        <div class="p-6 border border-white/5 rounded-xl bg-white/[0.02]">
+                            <i class="ph ph-clock text-accent text-2xl mb-3"></i>
+                            <h4 class="font-sans font-semibold text-white tracking-wide text-sm uppercase mb-2">Hours</h4>
+                            <p class="text-sm text-coffee-400 font-light leading-relaxed">Mon-Sun<br>07:00 AM - 11:00 PM</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="lg:col-span-7 grid grid-cols-2 gap-4 mt-12 lg:mt-0">
                     <div class="space-y-4 pt-12">
-                        <img src="https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=2670&auto=format&fit=crop" alt="Cafe Interior" class="w-full h-64 object-cover rounded-lg shadow-lg fade-up hover-trigger">
-                        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2647&auto=format&fit=crop" alt="Cafe Detail" class="w-full h-80 object-cover rounded-lg shadow-lg fade-up hover-trigger" style="transition-delay: 100ms;">
+                        <div class="img-reveal-container reveal-up">
+                            <img src="https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=2670&auto=format&fit=crop" alt="Cafe Interior" class="w-full h-64 object-cover hover-trigger">
+                        </div>
+                        <div class="img-reveal-container reveal-up delay-100">
+                            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2647&auto=format&fit=crop" alt="Cafe Detail" class="w-full h-80 object-cover hover-trigger">
+                        </div>
                     </div>
                     <div class="space-y-4">
-                        <img src="https://images.unsplash.com/photo-1501339817309-1461ba0715f6?q=80&w=2670&auto=format&fit=crop" alt="Coffee Setup" class="w-full h-80 object-cover rounded-lg shadow-lg fade-up hover-trigger" style="transition-delay: 200ms;">
-                        <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?q=80&w=2670&auto=format&fit=crop" alt="Patrons" class="w-full h-64 object-cover rounded-lg shadow-lg fade-up hover-trigger" style="transition-delay: 300ms;">
+                        <div class="img-reveal-container reveal-up delay-200">
+                            <img src="https://images.unsplash.com/photo-1501339817309-1461ba0715f6?q=80&w=2670&auto=format&fit=crop" alt="Coffee Setup" class="w-full h-80 object-cover hover-trigger">
+                        </div>
+                        <div class="img-reveal-container reveal-up delay-300">
+                            <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?q=80&w=2670&auto=format&fit=crop" alt="Patrons" class="w-full h-64 object-cover hover-trigger">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -368,201 +377,205 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-black py-16 px-6 border-t border-coffee-800 relative z-10">
+    <footer class="bg-black py-16 px-6 border-t border-white/10 relative z-10">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div>
-                <h2 class="text-3xl font-serif text-white font-malayalam">സമയം.</h2>
-                <p class="text-coffee-500 text-sm mt-2">© 2026 Samayam Cafe. All rights reserved.</p>
+            <div class="text-center md:text-left">
+                <h2 class="text-3xl font-serif text-white font-malayalam mb-2">സമയം.</h2>
+                <p class="text-coffee-500 text-xs tracking-widest uppercase">© 2026 Samayam Cafe. All rights reserved.</p>
             </div>
             
-            <div class="flex space-x-8">
-                <a href="#" class="text-coffee-300 hover:text-accent transition-colors hover-trigger"><i class="ph ph-instagram-logo text-2xl"></i></a>
-                <a href="#" class="text-coffee-300 hover:text-accent transition-colors hover-trigger"><i class="ph ph-twitter-logo text-2xl"></i></a>
-                <a href="#" class="text-coffee-300 hover:text-accent transition-colors hover-trigger"><i class="ph ph-facebook-logo text-2xl"></i></a>
+            <div class="flex space-x-6">
+                <a href="#" class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent hover:border-accent hover:text-black transition-all duration-300 hover-trigger">
+                    <i class="ph ph-instagram-logo text-xl"></i>
+                </a>
+                <a href="#" class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent hover:border-accent hover:text-black transition-all duration-300 hover-trigger">
+                    <i class="ph ph-twitter-logo text-xl"></i>
+                </a>
+                <a href="#" class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent hover:border-accent hover:text-black transition-all duration-300 hover-trigger">
+                    <i class="ph ph-facebook-logo text-xl"></i>
+                </a>
             </div>
         </div>
     </footer>
 
     <!-- Logic Scripts -->
     <script>
-        // --- Loading Screen Logic ---
         document.addEventListener("DOMContentLoaded", () => {
+            // --- Loading Screen Logic ---
             const loader = document.getElementById('loader');
             const loaderSub = document.getElementById('loader-sub');
             
             // Fade in subtitle
             setTimeout(() => {
                 loaderSub.classList.remove('opacity-0');
-            }, 500);
+            }, 600);
 
-            // Hide loader after a set time (simulating load)
+            // Hide loader after a set time
             setTimeout(() => {
                 loader.classList.add('hidden');
-            }, 2500); // 2.5s display time
-        });
+                document.body.style.overflow = 'visible'; // Restore scrolling
+            }, 2200); 
 
-        // --- Custom Cursor Logic ---
-        const cursor = document.querySelector('.custom-cursor');
-        const cursorFollower = document.querySelector('.custom-cursor-follower');
-        const hoverTriggers = document.querySelectorAll('.hover-trigger, a, button');
+            // --- Custom Cursor Logic ---
+            const cursor = document.querySelector('.custom-cursor');
+            const cursorFollower = document.querySelector('.custom-cursor-follower');
+            const hoverTriggers = document.querySelectorAll('.hover-trigger, a, button');
 
-        let mouseX = 0, mouseY = 0;
-        let followerX = 0, followerY = 0;
+            // Only run cursor logic on non-touch devices
+            if (window.matchMedia("(pointer: fine)").matches) {
+                let mouseX = 0, mouseY = 0;
+                let followerX = 0, followerY = 0;
 
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            // Instant cursor update
-            cursor.style.left = `${mouseX}px`;
-            cursor.style.top = `${mouseY}px`;
-        });
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    
+                    // Instant cursor update
+                    cursor.style.left = `${mouseX}px`;
+                    cursor.style.top = `${mouseY}px`;
+                });
 
-        // Smooth follow animation
-        function animateCursor() {
-            followerX += (mouseX - followerX) * 0.2;
-            followerY += (mouseY - followerY) * 0.2;
-            
-            cursorFollower.style.left = `${followerX}px`;
-            cursorFollower.style.top = `${followerY}px`;
-            
-            requestAnimationFrame(animateCursor);
-        }
-        animateCursor();
-
-        // Hover effects
-        hoverTriggers.forEach(trigger => {
-            trigger.addEventListener('mouseenter', () => {
-                document.body.classList.add('cursor-hover');
-                cursorFollower.style.transform = 'translate(-50%, -50%) scale(1.5)';
-                cursorFollower.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-            });
-            
-            trigger.addEventListener('mouseleave', () => {
-                document.body.classList.remove('cursor-hover');
-                cursorFollower.style.transform = 'translate(-50%, -50%) scale(1)';
-                cursorFollower.style.borderColor = 'rgba(212, 175, 55, 0.3)';
-            });
-        });
-
-        // --- Scroll Animations (Intersection Observer) ---
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target); // Run once
+                // Smooth follow animation
+                function animateCursor() {
+                    followerX += (mouseX - followerX) * 0.2;
+                    followerY += (mouseY - followerY) * 0.2;
+                    
+                    cursorFollower.style.left = `${followerX}px`;
+                    cursorFollower.style.top = `${followerY}px`;
+                    
+                    requestAnimationFrame(animateCursor);
                 }
-            });
-        }, observerOptions);
+                animateCursor();
 
-        document.querySelectorAll('.fade-up').forEach(el => {
-            observer.observe(el);
+                // Hover effects
+                hoverTriggers.forEach(trigger => {
+                    trigger.addEventListener('mouseenter', () => {
+                        document.body.classList.add('cursor-hover');
+                    });
+                    trigger.addEventListener('mouseleave', () => {
+                        document.body.classList.remove('cursor-hover');
+                    });
+                });
+            }
+
+            // --- Native Scroll Animations (No GSAP/ScrollTrigger required) ---
+            const revealElements = document.querySelectorAll('.reveal-up');
+            
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Run once per element
+                    }
+                });
+            }, {
+                root: null,
+                rootMargin: '0px 0px -100px 0px', // Trigger slightly before it comes into view
+                threshold: 0.1
+            });
+
+            revealElements.forEach(el => revealObserver.observe(el));
         });
     </script>
 
-    <!-- Three.js for WebGL Motion Background -->
+    <!-- Three.js for WebGL Motion Background (Procedural, no external assets to avoid CORS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script>
-        // Simulating a warm, slow-moving coffee/smoke fluid effect
-        const canvas = document.getElementById('fluid-bg');
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        // Wrapping in a self-executing function to avoid global scope pollution
+        (function initThreeJS() {
+            try {
+                const canvas = document.getElementById('fluid-bg');
+                if(!canvas) return;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance optimization
 
-        // Custom Shader Material for flowing effect
-        const vertexShader = `
-            varying vec2 vUv;
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 1;
+
+                // Pure procedural Shader Material (No textures, perfectly safe for local file:// execution)
+                const vertexShader = `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = vec4(position, 1.0);
+                    }
+                `;
+
+                const fragmentShader = `
+                    uniform float time;
+                    uniform vec2 resolution;
+                    varying vec2 vUv;
+
+                    void main() {
+                        // Normalize pixel coordinates
+                        vec2 uv = gl_FragCoord.xy / resolution.xy;
+                        
+                        // Correct aspect ratio
+                        vec2 p = uv * 2.0 - 1.0;
+                        p.x *= resolution.x / resolution.y;
+
+                        float t = time * 0.15; // Speed
+
+                        // Procedural noise/flow math
+                        float flow1 = sin(p.x * 2.0 + t) * cos(p.y * 2.0 - t);
+                        float flow2 = cos(p.x * 3.0 - t * 0.8) * sin(p.y * 1.5 + t);
+                        float finalFlow = flow1 + flow2;
+
+                        // Samayam Brand Colors
+                        vec3 darkCoffee = vec3(0.10, 0.07, 0.06);   // #1a120f
+                        vec3 midCoffee = vec3(0.17, 0.12, 0.10);    // #2b1f1a
+                        vec3 accentGold = vec3(0.83, 0.68, 0.21);   // #d4af37
+
+                        // Mix colors smoothly based on mathematical flow
+                        vec3 color = mix(darkCoffee, midCoffee, finalFlow * 0.5 + 0.5);
+                        
+                        // Add very subtle gold ambient highlights
+                        float highlight = smoothstep(0.7, 1.2, sin(finalFlow * 4.0 + time));
+                        color = mix(color, accentGold, highlight * 0.03);
+
+                        gl_FragColor = vec4(color, 1.0);
+                    }
+                `;
+
+                const material = new THREE.ShaderMaterial({
+                    vertexShader,
+                    fragmentShader,
+                    uniforms: {
+                        time: { value: 0 },
+                        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+                    }
+                });
+
+                // Screen-filling quad
+                const geometry = new THREE.PlaneGeometry(2, 2);
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+
+                // Animation Loop
+                let time = 0;
+                function animate() {
+                    requestAnimationFrame(animate);
+                    time += 0.01;
+                    material.uniforms.time.value = time;
+                    renderer.render(scene, camera);
+                }
+
+                // Handle Resize gracefully
+                window.addEventListener('resize', () => {
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+                });
+
+                // Start
+                window.onload = () => animate();
+
+            } catch(e) {
+                console.warn("Three.js background disabled due to environment restrictions.", e);
             }
-        `;
-
-        const fragmentShader = `
-            uniform float time;
-            uniform vec2 resolution;
-            varying vec2 vUv;
-
-            // Simple noise function
-            float noise(vec2 p) {
-                return sin(p.x * 10.0) * sin(p.y * 10.0);
-            }
-
-            void main() {
-                vec2 uv = gl_FragCoord.xy / resolution.xy;
-                
-                // Slow, swirling movement
-                float t = time * 0.1;
-                
-                vec2 p = uv * 2.0 - 1.0;
-                p.x *= resolution.x / resolution.y;
-
-                // Create organic flow patterns
-                float flow1 = sin(p.x * 2.0 + t) * cos(p.y * 2.0 - t);
-                float flow2 = cos(p.x * 3.0 - t * 0.5) * sin(p.y * 1.5 + t);
-                
-                float finalFlow = flow1 + flow2;
-
-                // Colors based on Samayam theme (Coffee & Gold)
-                vec3 color1 = vec3(0.17, 0.12, 0.10); // Dark Coffee (#2b1f1a)
-                vec3 color2 = vec3(0.42, 0.31, 0.26); // Mid Coffee (#6b4f43)
-                vec3 accent = vec3(0.83, 0.68, 0.21); // Gold tint (#d4af37)
-
-                // Mix colors based on flow
-                vec3 color = mix(color1, color2, finalFlow * 0.5 + 0.5);
-                
-                // Add subtle gold highlights
-                float highlight = smoothstep(0.8, 1.0, sin(finalFlow * 5.0 + time));
-                color = mix(color, accent, highlight * 0.1);
-
-                gl_FragColor = vec4(color, 1.0);
-            }
-        `;
-
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms: {
-                time: { value: 0 },
-                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-            }
-        });
-
-        // Large plane to cover the screen
-        const geometry = new THREE.PlaneGeometry(20, 20);
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        // Animation Loop
-        let time = 0;
-        function animate() {
-            requestAnimationFrame(animate);
-            time += 0.01;
-            material.uniforms.time.value = time;
-            renderer.render(scene, camera);
-        }
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
-        });
-
-        // Start animation once window is loaded to ensure smoothness
-        window.onload = () => {
-            animate();
-        };
+        })();
     </script>
 </body>
 </html>
