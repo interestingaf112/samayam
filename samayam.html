@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>സമയം | Premium Cafe</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Using a Malayalam font and a sophisticated sans-serif -->
+    <link href="https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            50: '#fcfaf8',
+                            100: '#f5f0eb',
+                            200: '#e6d8c8',
+                            300: '#d1bca0',
+                            400: '#b89b75',
+                            500: '#a38153',
+                            600: '#8c6841',
+                            700: '#735136',
+                            800: '#5e432f',
+                            900: '#4d3727',
+                            950: '#2b1c12',
+                        },
+                        accent: '#cfa670'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        malayalam: ['Manjari', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --cursor-size: 20px;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #f5f0eb;
+            overflow-x: hidden;
+            /* Hide default cursor to use custom one */
+            cursor: none; 
+        }
+
+        /* Keep default cursor for touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            body {
+                cursor: auto;
+            }
+            .custom-cursor, .cursor-follower {
+                display: none;
+            }
+        }
+
+        /* Custom Cursor Elements */
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--cursor-size);
+            height: var(--cursor-size);
+            background-color: theme('colors.accent');
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(207, 166, 112, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s;
+        }
+
+        /* Hover states for cursor */
+        .cursor-hover .custom-cursor {
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-hover .cursor-follower {
+            opacity: 0;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: theme('colors.coffee.950');
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader-text {
+            font-family: 'Manjari', sans-serif;
+            font-size: 4rem;
+            color: theme('colors.accent');
+            opacity: 0;
+        }
+
+        .loader-progress {
+            width: 200px;
+            height: 2px;
+            background-color: theme('colors.coffee.800');
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        .loader-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background-color: theme('colors.accent');
+        }
+
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.4;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        .blob-1 {
+            background: theme('colors.coffee.800');
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            left: -200px;
+        }
+
+        .blob-2 {
+            background: theme('colors.coffee.900');
+            width: 500px;
+            height: 500px;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .blob-3 {
+            background: theme('colors.accent');
+            width: 400px;
+            height: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.2;
+        }
+
+        .nav-link {
+            position: relative;
+            text-decoration: none;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -4px;
+            left: 0;
+            background-color: theme('colors.accent');
+            transition: width 0.3s ease-in-out;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .magnetic-btn {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        /* Image hover effect */
+        .image-container {
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        
+        .image-container img {
+            transition: transform 0.7s ease;
+        }
+        
+        .image-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .text-reveal-mask {
+            overflow: hidden;
+        }
+        
+        .text-reveal {
+            transform: translateY(100%);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-accent selection:text-coffee-950">
+
+    <div class="custom-cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <div id="loader">
+        <div class="loader-text font-bold">സമയം</div>
+        <div class="loader-progress">
+            <div class="loader-bar" id="loaderBar"></div>
+        </div>
+    </div>
+
+    <div class="bg-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div id="main-content" style="opacity: 0; visibility: hidden;">
+        
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 px-6 py-6 md:px-12 mix-blend-difference text-white flex justify-between items-center">
+            <div class="text-3xl font-malayalam font-bold hover-target cursor-pointer">സമയം</div>
+            <div class="hidden md:flex gap-8 text-sm uppercase tracking-widest font-medium">
+                <a href="#about" class="nav-link hover-target">Story</a>
+                <a href="#menu" class="nav-link hover-target">Menu</a>
+                <a href="#visit" class="nav-link hover-target">Visit</a>
+            </div>
+            <button class="hover-target p-2 rounded-full border border-white/20 hover:border-white transition-colors">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+        </nav>
+
+        <section class="min-h-screen relative flex items-center justify-center px-6 md:px-12 pt-24">
+            <div class="max-w-5xl w-full flex flex-col md:flex-row items-center gap-12">
+                <div class="flex-1 space-y-6 z-10">
+                    <div class="text-reveal-mask">
+                        <h1 class="text-reveal font-malayalam text-6xl md:text-8xl lg:text-9xl font-bold text-coffee-50 leading-none">
+                            സമയം
+                        </h1>
+                    </div>
+                    <div class="text-reveal-mask">
+                        <p class="text-reveal font-serif text-xl md:text-3xl text-coffee-200 italic">
+                            Where time slows down, and flavors steep.
+                        </p>
+                    </div>
+                    <div class="text-reveal-mask pt-8">
+                        <p class="text-reveal text-coffee-300 max-w-md font-light leading-relaxed">
+                            Experience the rich heritage of Kerala through our carefully curated coffee blends and authentic bites. Take a moment for yourself.
+                        </p>
+                    </div>
+                    <div class="pt-8">
+                        <a href="#menu" class="hover-target inline-block group relative px-8 py-4 bg-transparent border border-accent text-accent font-medium uppercase tracking-wider overflow-hidden rounded-full">
+                            <span class="relative z-10 group-hover:text-coffee-950 transition-colors duration-300">Explore Menu</span>
+                            <div class="absolute inset-0 h-full w-full bg-accent scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-out z-0"></div>
+                        </a>
+                    </div>
+                </div>
+                <div class="flex-1 w-full relative">
+                    <!-- Decorative element -->
+                    <div class="absolute -inset-4 border border-coffee-800/50 rounded-2xl transform rotate-3"></div>
+                    <div class="image-container hero-img w-full h-[60vh] md:h-[80vh]">
+                        <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1600&auto=format&fit=crop" 
+                             alt="Pouring Coffee" 
+                             class="w-full h-full object-cover rounded-2xl"
+                             loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-32 px-6 md:px-12 bg-coffee-950/50 relative z-10">
+            <div class="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center gap-16">
+                <div class="flex-1 image-container h-[50vh] md:h-[70vh] w-full">
+                    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1447&auto=format&fit=crop" 
+                         alt="Coffee Beans" 
+                         class="w-full h-full object-cover"
+                         loading="lazy">
+                </div>
+                <div class="flex-1 space-y-8">
+                    <div class="text-accent text-sm font-bold tracking-widest uppercase">Our Story</div>
+                    <h2 class="font-serif text-4xl md:text-5xl lg:text-6xl text-coffee-50 leading-tight">
+                        Rooted in tradition,<br>brewed for today.
+                    </h2>
+                    <p class="text-coffee-300 font-light text-lg leading-relaxed">
+                        At സമയം (Samayam), which means 'Time' in Malayalam, we believe that good things shouldn't be rushed. We source our beans directly from the lush estates of Wayanad, ensuring every cup carries the essence of the monsoons and the warmth of the sun.
+                    </p>
+                    <p class="text-coffee-300 font-light text-lg leading-relaxed">
+                        Our space is designed to be a sanctuary away from the hustle. A place to read, converse, or simply watch the world go by while enjoying artisanal bakes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="menu" class="py-32 px-6 md:px-12">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-end mb-16">
+                    <div>
+                        <div class="text-accent text-sm font-bold tracking-widest uppercase mb-4">The Menu</div>
+                        <h2 class="font-serif text-4xl md:text-5xl text-coffee-50">Signature Brews</h2>
+                    </div>
+                    <a href="#" class="hover-target text-coffee-300 hover:text-accent transition-colors flex items-center gap-2 pb-2 border-b border-coffee-800">
+                        View Full Menu <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Item 1 -->
+                    <div class="group hover-target cursor-pointer">
+                        <div class="image-container h-[40vh] w-full mb-6">
+                            <img src="https://images.unsplash.com/photo-1585218356053-c90a192bf555?q=80&w=1280&auto=format&fit=crop" 
+                                 alt="Monsoon Malabar" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-serif text-2xl text-coffee-100 group-hover:text-accent transition-colors">Monsoon Malabar</h3>
+                            <span class="text-coffee-400">₹240</span>
+                        </div>
+                        <p class="text-coffee-400 font-light text-sm">Exposed to monsoon winds, earthy, low acidity, full-bodied.</p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="group hover-target cursor-pointer md:mt-12">
+                        <div class="image-container h-[40vh] w-full mb-6">
+                            <img src="https://images.unsplash.com/photo-1610889556528-9a770e32642f?q=80&w=1280&auto=format&fit=crop" 
+                                 alt="Wayanad Filter" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-serif text-2xl text-coffee-100 group-hover:text-accent transition-colors">Wayanad Filter</h3>
+                            <span class="text-coffee-400">₹180</span>
+                        </div>
+                        <p class="text-coffee-400 font-light text-sm">Traditional South Indian style drip, served strong with jaggery.</p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="group hover-target cursor-pointer">
+                        <div class="image-container h-[40vh] w-full mb-6">
+                            <img src="https://images.unsplash.com/photo-1579992357154-faf4bde95b3d?q=80&w=1280&auto=format&fit=crop" 
+                                 alt="Cardamom Cold Brew" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-serif text-2xl text-coffee-100 group-hover:text-accent transition-colors">Cardamom Cold Brew</h3>
+                            <span class="text-coffee-400">₹260</span>
+                        </div>
+                        <p class="text-coffee-400 font-light text-sm">Steeped for 18 hours with crushed green cardamom pods.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer id="visit" class="bg-coffee-950 py-20 px-6 md:px-12 border-t border-coffee-900 mt-20 relative z-10">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <h2 class="font-malayalam text-5xl font-bold text-accent mb-6">സമയം</h2>
+                    <p class="text-coffee-400 max-w-sm mb-8">A space dedicated to the art of slowing down and appreciating the finer brews of life.</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="hover-target text-coffee-400 hover:text-white transition-colors text-2xl"><i class="ph ph-instagram-logo"></i></a>
+                        <a href="#" class="hover-target text-coffee-400 hover:text-white transition-colors text-2xl"><i class="ph ph-facebook-logo"></i></a>
+                        <a href="#" class="hover-target text-coffee-400 hover:text-white transition-colors text-2xl"><i class="ph ph-twitter-logo"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-serif text-xl mb-6">Visit Us</h4>
+                    <ul class="text-coffee-400 space-y-4 font-light">
+                        <li>123 Heritage Lane,<br>Fort Kochi,<br>Kerala 682001</li>
+                        <li><a href="mailto:hello@samayam.cafe" class="hover-target hover:text-accent">hello@samayam.cafe</a></li>
+                        <li>+91 98765 43210</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-serif text-xl mb-6">Hours</h4>
+                    <ul class="text-coffee-400 space-y-4 font-light">
+                        <li class="flex justify-between"><span>Mon - Fri</span> <span>08:00 - 20:00</span></li>
+                        <li class="flex justify-between"><span>Saturday</span> <span>09:00 - 22:00</span></li>
+                        <li class="flex justify-between"><span>Sunday</span> <span>09:00 - 18:00</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto mt-20 pt-8 border-t border-coffee-900 text-center text-coffee-600 text-sm">
+                &copy; 2026 സമയം Cafe. All rights reserved. Designed for experience.
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // Register GSAP ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* --- Custom Cursor Logic --- */
+            const cursor = document.querySelector('.custom-cursor');
+            const follower = document.querySelector('.cursor-follower');
+            const hoverTargets = document.querySelectorAll('.hover-target');
+            
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+            let followerX = 0, followerY = 0;
+
+            // Update mouse coordinates
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            // Animate cursor to follow mouse smoothly
+            const animateCursor = () => {
+                // Main dot follows instantly
+                cursorX = mouseX;
+                cursorY = mouseY;
+                cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+
+                // Follower ring has a slight delay/easing
+                followerX += (mouseX - followerX) * 0.2;
+                followerY += (mouseY - followerY) * 0.2;
+                follower.style.transform = `translate(${followerX}px, ${followerY}px)`;
+
+                requestAnimationFrame(animateCursor);
+            };
+            animateCursor();
+
+            // Add hover effects to specified targets
+            hoverTargets.forEach(target => {
+                target.addEventListener('mouseenter', () => {
+                    document.body.classList.add('cursor-hover');
+                });
+                target.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('cursor-hover');
+                });
+            });
+
+            /* --- Magnetic Button Effect (Optional subtle interaction) --- */
+            const magneticBtns = document.querySelectorAll('.magnetic-btn');
+            magneticBtns.forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    
+                    gsap.to(btn, {
+                        x: x * 0.3,
+                        y: y * 0.3,
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    gsap.to(btn, {
+                        x: 0,
+                        y: 0,
+                        duration: 0.5,
+                        ease: "elastic.out(1, 0.3)"
+                    });
+                });
+            });
+
+            /* --- Background Motion (Blobs) --- */
+            // Move blobs slowly based on mouse position to create parallax
+            const bgCanvas = document.querySelector('.bg-canvas');
+            const blobs = document.querySelectorAll('.blob');
+            
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+
+                gsap.to('.blob-1', {
+                    x: x * 100,
+                    y: y * 100,
+                    duration: 2,
+                    ease: "power1.out"
+                });
+                
+                gsap.to('.blob-2', {
+                    x: -x * 80,
+                    y: -y * 80,
+                    duration: 2.5,
+                    ease: "power1.out"
+                });
+            });
+
+            // Continuous ambient animation for blobs
+            gsap.to('.blob-1', {
+                scale: 1.2,
+                rotation: 15,
+                duration: 10,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+
+            gsap.to('.blob-2', {
+                scale: 1.1,
+                rotation: -10,
+                duration: 12,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+
+
+            /* --- Loading Screen & Entrance Animations --- */
+            const loaderText = document.querySelector('.loader-text');
+            const loaderBar = document.getElementById('loaderBar');
+            const loaderProgressContainer = document.querySelector('.loader-progress');
+            const mainContent = document.getElementById('main-content');
+            
+            // Loading sequence timeline
+            const tl = gsap.timeline();
+
+            // 1. Fade in text and progress container
+            tl.to(loaderText, { opacity: 1, duration: 0.8, ease: "power2.out" })
+              .to(loaderProgressContainer, { opacity: 1, duration: 0.5 }, "-=0.4");
+
+            // 2. Animate progress bar (simulating loading)
+            tl.to(loaderBar, {
+                width: "100%",
+                duration: 2, // Adjust duration as needed
+                ease: "power2.inOut"
+            });
+
+            // 3. Hide loader and reveal content
+            tl.to('#loader', {
+                yPercent: -100,
+                duration: 1,
+                ease: "power4.inOut",
+                onStart: () => {
+                    // Make main content visible right before loader goes away
+                    gsap.set(mainContent, { autoAlpha: 1 });
+                }
+            }, "+=0.2");
+
+            // 4. Hero Section Entrance Animations
+            tl.from('.text-reveal', {
+                y: "110%",
+                duration: 1.2,
+                stagger: 0.15,
+                ease: "power4.out",
+                skewY: 5 // Slight skew for dynamic effect
+            }, "-=0.5")
+            .from('nav', {
+                y: -50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            }, "-=1")
+            .from('.hero-img', {
+                scale: 0.9,
+                opacity: 0,
+                duration: 1.5,
+                ease: "power3.out",
+                clearProps: "all" // Important so hover effects still work
+            }, "-=1");
+
+            /* --- Scroll Animations --- */
+            
+            // Story Section
+            gsap.from("#about .image-container", {
+                scrollTrigger: {
+                    trigger: "#about",
+                    start: "top 70%",
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+
+            gsap.from("#about h2, #about p", {
+                scrollTrigger: {
+                    trigger: "#about",
+                    start: "top 60%",
+                },
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+
+            // Menu Section
+            gsap.from("#menu > div > div:first-child", {
+                scrollTrigger: {
+                    trigger: "#menu",
+                    start: "top 70%",
+                },
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+
+            gsap.from("#menu .group", {
+                scrollTrigger: {
+                    trigger: "#menu .grid",
+                    start: "top 80%",
+                },
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: "power3.out"
+            });
+
+            // Footer
+            gsap.from("footer > div > div", {
+                scrollTrigger: {
+                    trigger: "footer",
+                    start: "top 90%",
+                },
+                y: 20,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>
